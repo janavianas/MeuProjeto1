@@ -1,0 +1,201 @@
+{
+  "generators": [
+    {
+      "topic": "customers",
+      "table": "customers",
+      "connection": "pg",
+      "row": {
+        "customer_id": { "_gen": "uuid" },
+        "name": { "_gen": "string", "expr": "#{Name.fullName}" },
+        "email": { "_gen": "string", "expr": "#{Internet.emailAddress}" },
+        "city": { "_gen": "string", "expr": "#{Address.city}" },
+        "state": {
+          "_gen": "oneOf",
+          "choices": [
+            {"value": "SP"}, {"value": "RJ"}, {"value": "MG"}, {"value": "RS"},
+            {"value": "PR"}, {"value": "SC"}, {"value": "BA"}, {"value": "PE"}
+          ]
+        },
+        "segment": {
+          "_gen": "oneOf",
+          "choices": [
+            {"value": "premium"}, {"value": "standard"}, {"value": "basic"}
+          ]
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 500,
+        "throttle": 0
+      }
+    },
+    {
+      "topic": "products",
+      "table": "products",
+      "connection": "pg",
+      "row": {
+        "product_id": { "_gen": "uuid" },
+        "name": { "_gen": "string", "expr": "#{Commerce.productName}" },
+        "category": { "_gen": "string", "expr": "#{Commerce.department}" },
+        "price": {
+          "_gen": "uniformDistribution",
+          "bounds": [19.90, 999.90],
+          "decimals": 2
+        },
+        "brand": { "_gen": "string", "expr": "#{Company.name}" }
+      },
+      "localConfigs": {
+        "maxEvents": 200,
+        "throttle": 0
+      }
+    },
+    {
+      "topic": "orders",
+      "table": "orders",
+      "connection": "pg",
+      "row": {
+        "order_id": { "_gen": "uuid" },
+        "customer_id": {
+          "_gen": "lookup",
+          "topic": "customers",
+          "path": ["row", "customer_id"]
+        },
+        "product_id": {
+          "_gen": "lookup",
+          "topic": "products",
+          "path": ["row", "product_id"]
+        },
+        "qty": {
+          "_gen": "uniformDistribution",
+          "bounds": [1, 10],
+          "decimals": 0
+        },
+        "total": {
+          "_gen": "uniformDistribution",
+          "bounds": [29.90, 999.90],
+          "decimals": 2
+        },
+        "status": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            {"value": "delivered", "weight": 0.50},
+            {"value": "shipped", "weight": 0.20},
+            {"value": "processing", "weight": 0.20},
+            {"value": "cancelled", "weight": 0.10}
+          ]
+        },
+        "payment": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            {"value": "pix", "weight": 0.45},
+            {"value": "credit_card", "weight": 0.40},
+            {"value": "boleto", "weight": 0.15}
+          ]
+        },
+        "created_at": { "_gen": "now" }
+      },
+      "localConfigs": {
+        "maxEvents": 5000,
+        "throttle": 100
+      }
+    },
+    {
+      "topic": "reviews",
+      "connection": "fs",
+      "directory": "/data/reviews",
+      "data": {
+        "review_id": { "_gen": "uuid" },
+        "order_id": {
+          "_gen": "lookup",
+          "topic": "orders",
+          "path": ["row", "order_id"]
+        },
+        "rating": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            {"value": 1, "weight": 0.05},
+            {"value": 2, "weight": 0.10},
+            {"value": 3, "weight": 0.20},
+            {"value": 4, "weight": 0.30},
+            {"value": 5, "weight": 0.35}
+          ]
+        },
+        "comment": {
+          "_gen": "oneOf",
+          "choices": [
+            {"value": "Produto chegou antes do prazo, estou muito satisfeito com a compra."},
+            {"value": "Entrega atrasou mais de 10 dias, nao recebi nenhuma notificacao."},
+            {"value": "O produto e exatamente como descrito na foto, otima qualidade."},
+            {"value": "Frete absurdamente caro, quase o dobro do valor do produto."},
+            {"value": "Ate hoje nao recebi meu pedido, faz 20 dias que comprei."},
+            {"value": "Superou todas as minhas expectativas, recomendo muito."},
+            {"value": "Produto chegou danificado, a embalagem estava completamente amassada."},
+            {"value": "Atendimento ao cliente pessimo, ninguem resolve o problema."},
+            {"value": "Entrega rapida e produto de otima qualidade, voltarei a comprar."},
+            {"value": "O produto veio diferente da foto, cor totalmente errada."},
+            {"value": "Demorou 15 dias para chegar, mas o produto e bom."},
+            {"value": "Excelente custo-beneficio, produto de qualidade por um preco justo."},
+            {"value": "Nao recebi o produto e o suporte nao responde meus chamados."},
+            {"value": "Produto danificado na entrega, pedi reembolso mas nao obtive resposta."},
+            {"value": "Chegou no prazo, embalagem bem protegida, produto perfeito."},
+            {"value": "O frete demorou mais do que o esperado, porem o produto e bom."},
+            {"value": "Comprei ha 3 semanas e ainda esta como pedido em processamento."},
+            {"value": "Qualidade excelente, bem melhor do que esperava pelo preco."},
+            {"value": "Produto veio com defeito de fabricacao, muito decepcionante."},
+            {"value": "Entrega super rapida, recebi em 2 dias uteis. Recomendo o vendedor."},
+            {"value": "O material e fraco, nao vale o preco que foi cobrado."},
+            {"value": "Otimo produto, ja e minha segunda compra e continua me surpreendendo."},
+            {"value": "A entrega estava prevista para sexta e chegou apenas na quarta da semana seguinte."},
+            {"value": "Produto identico ao anunciado, funcionando perfeitamente."},
+            {"value": "Tive que abrir disputa pois o produto nunca chegou no endereco."},
+            {"value": "Muito bom, superou as expectativas em termos de qualidade e acabamento."},
+            {"value": "Embalagem chegou aberta e produto com sinais de uso, inaceitavel."},
+            {"value": "Rapido, seguro e produto de alta qualidade. Nota maxima."},
+            {"value": "O vendedor nao fornece rastreamento atualizado, ficou dias sem movimentacao."},
+            {"value": "Produto fantastico, vale cada centavo investido na compra."}
+          ]
+        },
+        "sentiment": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            {"value": "positive", "weight": 0.35},
+            {"value": "neutral", "weight": 0.30},
+            {"value": "negative", "weight": 0.35}
+          ]
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 500,
+        "throttle": 500
+      },
+      "fileConfigs": {
+        "fileName": "reviews.jsonl"
+      }
+    }
+  ],
+  "connections": {
+    "pg": {
+      "kind": "postgres",
+      "connectionConfigs": {
+        "host": "postgres",
+        "port": 5432,
+        "db": "shopagent",
+        "username": "shopagent",
+        "password": "shopagent"
+      },
+      "tablePolicy": "create"
+    },
+    "fs": {
+      "kind": "fileSystem"
+    }
+  },
+  "schedule": {
+    "stages": [
+      {
+        "generators": ["customers", "products"]
+      },
+      {
+        "generators": ["orders", "reviews"]
+      }
+    ]
+  }
+}
